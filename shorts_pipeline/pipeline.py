@@ -10,7 +10,7 @@ from shorts_pipeline.config import Settings
 from shorts_pipeline.ffmpeg import build_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
 from shorts_pipeline.models import Storyboard
 from shorts_pipeline.image_prompts import build_image_prompt
-from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAIImageProvider, OpenAILLMProvider
+from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAIImageProvider, OpenAILLMProvider, OpenAITTSProvider
 from shorts_pipeline.providers.base import ImageProvider, LLMProvider, TTSProvider
 from shorts_pipeline.storage import RunStore
 from shorts_pipeline.storyboard import build_storyboard, write_subtitles
@@ -32,9 +32,6 @@ def retry(operation: Callable[[], T], attempts: int, label: str) -> T:
 
 
 def select_providers(settings: Settings) -> tuple[LLMProvider, ImageProvider, TTSProvider]:
-    unsupported = [name for name, value in (("TTS_PROVIDER", settings.tts_provider),) if value != "local"]
-    if unsupported:
-        raise ValueError(f"Unsupported provider selection: {', '.join(unsupported)}. This MVP ships local providers; add an adapter without changing the pipeline.")
     if settings.llm_provider == "local":
         llm: LLMProvider = LocalLLMProvider()
     elif settings.llm_provider == "openai":
@@ -51,7 +48,20 @@ def select_providers(settings: Settings) -> tuple[LLMProvider, ImageProvider, TT
         image = OpenAIImageProvider(settings.openai_api_key, settings.openai_image_model, settings.timeout_seconds)
     else:
         raise ValueError("Unsupported IMAGE_PROVIDER. Use 'local' or 'openai'.")
-    return llm, image, LocalTTSProvider()
+    if settings.tts_provider == "local":
+        tts: TTSProvider = LocalTTSProvider()
+    elif settings.tts_provider == "openai":
+        if not settings.openai_api_key:
+            raise ValueError("TTS_PROVIDER=openai requires OPENAI_API_KEY. Set it in your environment or .env before running the pipeline.")
+        tts = OpenAITTSProvider(
+            settings.openai_api_key,
+            settings.openai_tts_model,
+            settings.openai_tts_voice,
+            settings.timeout_seconds,
+        )
+    else:
+        raise ValueError("Unsupported TTS_PROVIDER. Use 'local' or 'openai'.")
+    return llm, image, tts
 
 
 class Pipeline:

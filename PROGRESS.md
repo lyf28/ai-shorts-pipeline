@@ -7,7 +7,7 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 ## Planned Commits
 
 1. `chore: add tts provider configuration` - complete.
-2. `feat: add openai tts provider`.
+2. `feat: add openai tts provider` - complete.
 3. `feat: align narration timing with scenes`.
 4. `test: add tts provider coverage`.
 5. `docs: document tts setup`.
@@ -28,6 +28,7 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 - Added API-free coverage for image provider selection, prompting, output handling, and failures.
 - Documented OpenAI image setup, portrait scene assets, and FFmpeg motion behavior.
 - Added configurable OpenAI TTS model and voice settings while keeping local TTS as the default.
+- Added OpenAI Speech API narration provider with configurable model and voice, WAV validation, timeout, retry integration, and explicit provider selection.
 
 ## Verification
 
@@ -42,6 +43,7 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 - Local regression: `python run.py --dry-run --topic "focus"` and `python run.py --topic "building better habits" --verbose` both passed; the latter created a validated 24-second 1080x1920 H.264/AAC MP4 with deterministic image motion.
 - Real OpenAI image smoke test was not run because `OPENAI_API_KEY` is not configured in this environment.
 - TTS configuration regression: `python -m unittest discover -s tests -v` - 20/20 passed without an OpenAI API request.
+- TTS provider regression: `python -m compileall -q shorts_pipeline` and `python -m unittest discover -s tests -v` - 20/20 passed; `TTS_PROVIDER=openai` without a key exited with the expected actionable error.
 
 ## Current Issues
 
@@ -53,4 +55,4 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 
 ## Next Commit
 
-- `feat: add openai tts provider`.
+- `feat: align narration timing with scenes`.
