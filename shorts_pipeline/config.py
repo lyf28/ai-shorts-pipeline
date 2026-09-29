@@ -23,11 +23,18 @@ class Settings:
     llm_provider: str
     image_provider: str
     tts_provider: str
+    video_provider: str
     openai_api_key: str | None
     openai_model: str
     openai_image_model: str
     openai_tts_model: str
     openai_tts_voice: str
+    runway_api_key: str | None
+    runway_video_model: str
+    runway_video_duration_seconds: float
+    runway_video_cost_per_second_usd: float
+    max_video_seconds_per_run: float
+    max_video_cost_per_run_usd: float
     ffmpeg_bin: str | None
     ffprobe_bin: str | None
     timeout_seconds: int
@@ -41,11 +48,18 @@ class Settings:
             llm_provider=os.getenv("LLM_PROVIDER", "local"),
             image_provider=os.getenv("IMAGE_PROVIDER", "local"),
             tts_provider=os.getenv("TTS_PROVIDER", "local"),
+            video_provider=os.getenv("VIDEO_PROVIDER", "local"),
             openai_api_key=os.getenv("OPENAI_API_KEY") or None,
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             openai_image_model=os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-2.5-flare"),
             openai_tts_model=os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts"),
             openai_tts_voice=os.getenv("OPENAI_TTS_VOICE", "alloy"),
+            runway_api_key=os.getenv("RUNWAY_API_KEY") or None,
+            runway_video_model=os.getenv("RUNWAY_VIDEO_MODEL", "gen4_turbo"),
+            runway_video_duration_seconds=float(os.getenv("RUNWAY_VIDEO_DURATION_SECONDS", "4")),
+            runway_video_cost_per_second_usd=float(os.getenv("RUNWAY_VIDEO_COST_PER_SECOND_USD", "0.05")),
+            max_video_seconds_per_run=float(os.getenv("MAX_VIDEO_SECONDS_PER_RUN", "12")),
+            max_video_cost_per_run_usd=float(os.getenv("MAX_VIDEO_COST_PER_RUN_USD", "0.75")),
             ffmpeg_bin=os.getenv("FFMPEG_BIN") or None,
             ffprobe_bin=os.getenv("FFPROBE_BIN") or None,
             timeout_seconds=int(os.getenv("PIPELINE_TIMEOUT_SECONDS", "180")),

@@ -2,15 +2,18 @@
 
 ## Goal
 
-Add configurable OpenAI text-to-speech while preserving the offline local pipeline and aligning scene timing to the rendered narration.
+Add a cost-aware hybrid image/video pipeline that selectively animates high-value scenes with Runway while preserving the offline image-motion default.
 
 ## Planned Commits
 
-1. `chore: add tts provider configuration` - complete.
-2. `feat: add openai tts provider` - complete.
-3. `feat: align narration timing with scenes` - complete.
-4. `test: add tts provider coverage` - complete.
-5. `docs: document tts setup` - complete.
+1. `chore: add video provider configuration` - complete.
+2. `feat: add video provider interface`.
+3. `feat: add runway video provider`.
+4. `feat: add scene media strategy`.
+5. `feat: add video cost budget`.
+6. `feat: compose mixed image and video scenes`.
+7. `test: add hybrid media pipeline coverage`.
+8. `docs: document runway video generation`.
 
 ## Completed
 
@@ -32,6 +35,7 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 - Aligned scene and subtitle durations to the measured WAV narration duration before FFmpeg composition.
 - Added API-free TTS tests for provider selection, missing credentials, successful WAV handling, failed responses, and persisted timing alignment.
 - Documented local and OpenAI TTS setup, configurable voice/model, WAV output, timing alignment, and AI voice disclosure.
+- Added local-first video provider, Runway, and per-run video budget configuration.
 
 ## Verification
 
@@ -50,6 +54,7 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 - Narration timing regression: focused tests - 7/7 passed; local dry run passed and a full local run created a validated 24-second 1080x1920 MP4 with aligned subtitle timings.
 - TTS coverage: `python -m unittest tests.test_openai_tts_provider -v` - 7/7 passed; full suite - 29/29 passed without an OpenAI API request.
 - Final TTS regression: `python -m unittest discover -s tests -v` - 29/29 passed; `python run.py --dry-run --topic "focus"` passed. A real OpenAI TTS smoke test was not run because `OPENAI_API_KEY` is not configured.
+- Video configuration regression: `python -m unittest discover -s tests -v` - 29/29 passed without a Runway API request.
 
 ## Current Issues
 
@@ -61,4 +66,4 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 
 ## Next Commit
 
-- None; perform final history, working-tree, and remote verification.
+- `feat: add video provider interface`.
