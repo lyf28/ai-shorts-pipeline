@@ -7,7 +7,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 ## Planned Commits
 
 1. `chore: add video provider configuration` - complete.
-2. `feat: add video provider interface`.
+2. `feat: add video provider interface` - complete.
 3. `feat: add runway video provider`.
 4. `feat: add scene media strategy`.
 5. `feat: add video cost budget`.
@@ -36,6 +36,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 - Added API-free TTS tests for provider selection, missing credentials, successful WAV handling, failed responses, and persisted timing alignment.
 - Documented local and OpenAI TTS setup, configurable voice/model, WAV output, timing alignment, and AI voice disclosure.
 - Added local-first video provider, Runway, and per-run video budget configuration.
+- Added a separate image-to-video `VideoProvider` contract without changing `ImageProvider`.
 
 ## Verification
 
@@ -55,6 +56,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 - TTS coverage: `python -m unittest tests.test_openai_tts_provider -v` - 7/7 passed; full suite - 29/29 passed without an OpenAI API request.
 - Final TTS regression: `python -m unittest discover -s tests -v` - 29/29 passed; `python run.py --dry-run --topic "focus"` passed. A real OpenAI TTS smoke test was not run because `OPENAI_API_KEY` is not configured.
 - Video configuration regression: `python -m unittest discover -s tests -v` - 29/29 passed without a Runway API request.
+- Video provider interface: focused test passed; full suite - 30/30 passed without a Runway API request.
 
 ## Current Issues
 
@@ -66,4 +68,4 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 
 ## Next Commit
 
-- `feat: add video provider interface`.
+- `feat: add runway video provider`.

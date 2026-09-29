@@ -27,6 +27,24 @@ class ImageProvider(ABC):
     def generate_image(self, scene: Scene, destination: Path) -> Path: ...
 
 
+class VideoProvider(ABC):
+    """Provider contract for generating a short MP4 from one scene image."""
+
+    @property
+    @abstractmethod
+    def file_extension(self) -> str: ...
+
+    @abstractmethod
+    def generate_from_image(
+        self,
+        scene: Scene,
+        image: Path,
+        motion_prompt: str,
+        duration_seconds: float,
+        destination: Path,
+    ) -> Path: ...
+
+
 class TTSProvider(ABC):
     """Provider contract for narration audio."""
 
