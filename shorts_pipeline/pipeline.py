@@ -9,8 +9,8 @@ from typing import Callable, TypeVar
 from shorts_pipeline.config import Settings
 from shorts_pipeline.ffmpeg import build_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
 from shorts_pipeline.models import Storyboard
-from shorts_pipeline.providers import LocalLLMProvider, LocalTTSProvider, LocalVideoProvider, OpenAILLMProvider
-from shorts_pipeline.providers.base import LLMProvider, TTSProvider, VideoProvider
+from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAILLMProvider
+from shorts_pipeline.providers.base import ImageProvider, LLMProvider, TTSProvider
 from shorts_pipeline.storage import RunStore
 from shorts_pipeline.storyboard import build_storyboard, write_subtitles
 
@@ -30,8 +30,8 @@ def retry(operation: Callable[[], T], attempts: int, label: str) -> T:
     raise error
 
 
-def select_providers(settings: Settings) -> tuple[LLMProvider, VideoProvider, TTSProvider]:
-    unsupported = [name for name, value in (("VIDEO_PROVIDER", settings.video_provider), ("TTS_PROVIDER", settings.tts_provider)) if value != "local"]
+def select_providers(settings: Settings) -> tuple[LLMProvider, ImageProvider, TTSProvider]:
+    unsupported = [name for name, value in (("IMAGE_PROVIDER", settings.image_provider), ("TTS_PROVIDER", settings.tts_provider)) if value != "local"]
     if unsupported:
         raise ValueError(f"Unsupported provider selection: {', '.join(unsupported)}. This MVP ships local providers; add an adapter without changing the pipeline.")
     if settings.llm_provider == "local":
@@ -42,13 +42,13 @@ def select_providers(settings: Settings) -> tuple[LLMProvider, VideoProvider, TT
         llm = OpenAILLMProvider(settings.openai_api_key, settings.openai_model, settings.timeout_seconds)
     else:
         raise ValueError("Unsupported LLM_PROVIDER. Use 'local' or 'openai'.")
-    return llm, LocalVideoProvider(), LocalTTSProvider()
+    return llm, LocalImageProvider(), LocalTTSProvider()
 
 
 class Pipeline:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.llm, self.video, self.tts = select_providers(settings)
+        self.llm, self.image, self.tts = select_providers(settings)
         self.store = RunStore(settings.root / "data" / "pipeline.sqlite3")
 
     def run(self, topic: str | None = None, dry_run: bool = False) -> Path | None:
@@ -65,7 +65,7 @@ class Pipeline:
             if dry_run:
                 self.store.update(run_id, generation_status="dry_run_complete")
                 return None
-            images = [retry(lambda scene=scene: self.video.generate_visual(scene, work_dir / f"scene_{scene.index}.ppm"), self.settings.retries + 1, f"scene {scene.index} visual") for scene in storyboard.scenes]
+            images = [retry(lambda scene=scene: self.image.generate_image(scene, work_dir / f"scene_{scene.index}{self.image.file_extension}"), self.settings.retries + 1, f"scene {scene.index} image") for scene in storyboard.scenes]
             subtitles = work_dir / "subtitles.srt"
             write_subtitles(storyboard, subtitles)
             total = sum(scene.duration_seconds for scene in storyboard.scenes)

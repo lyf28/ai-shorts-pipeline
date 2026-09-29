@@ -22,7 +22,6 @@ class Settings:
     root: Path
     llm_provider: str
     image_provider: str
-    video_provider: str
     tts_provider: str
     openai_api_key: str | None
     openai_model: str
@@ -39,7 +38,6 @@ class Settings:
             root=root,
             llm_provider=os.getenv("LLM_PROVIDER", "local"),
             image_provider=os.getenv("IMAGE_PROVIDER", "local"),
-            video_provider=os.getenv("VIDEO_PROVIDER", "local"),
             tts_provider=os.getenv("TTS_PROVIDER", "local"),
             openai_api_key=os.getenv("OPENAI_API_KEY") or None,
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),

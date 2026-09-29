@@ -16,11 +16,15 @@ class LLMProvider(ABC):
     def generate_script(self, idea: str) -> str: ...
 
 
-class VideoProvider(ABC):
-    """Provider contract for a visual asset per scene."""
+class ImageProvider(ABC):
+    """Provider contract for one still image asset per scene."""
+
+    @property
+    @abstractmethod
+    def file_extension(self) -> str: ...
 
     @abstractmethod
-    def generate_visual(self, scene: Scene, destination: Path) -> Path: ...
+    def generate_image(self, scene: Scene, destination: Path) -> Path: ...
 
 
 class TTSProvider(ABC):

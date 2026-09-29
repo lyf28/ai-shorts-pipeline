@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from shorts_pipeline.config import Settings
 from shorts_pipeline.pipeline import select_providers
-from shorts_pipeline.providers import LocalLLMProvider, LocalTTSProvider, LocalVideoProvider
+from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider
 from shorts_pipeline.providers.openai import OpenAILLMProvider, OpenAIProviderError
 
 
@@ -28,7 +28,6 @@ class OpenAILLMProviderTests(unittest.TestCase):
             "root": Path("."),
             "llm_provider": "local",
             "image_provider": "local",
-            "video_provider": "local",
             "tts_provider": "local",
             "openai_api_key": None,
             "openai_model": "test-model",
@@ -45,7 +44,7 @@ class OpenAILLMProviderTests(unittest.TestCase):
         llm, video, tts = select_providers(self.settings())
 
         self.assertIsInstance(llm, LocalLLMProvider)
-        self.assertIsInstance(video, LocalVideoProvider)
+        self.assertIsInstance(video, LocalImageProvider)
         self.assertIsInstance(tts, LocalTTSProvider)
 
     def test_selects_openai_llm_provider(self) -> None:

@@ -1,5 +1,5 @@
-from .base import LLMProvider, TTSProvider, VideoProvider
-from .local import LocalLLMProvider, LocalTTSProvider, LocalVideoProvider
+from .base import ImageProvider, LLMProvider, TTSProvider
+from .local import LocalImageProvider, LocalLLMProvider, LocalTTSProvider
 from .openai import OpenAILLMProvider, OpenAIProviderError
 
-__all__ = ["LLMProvider", "TTSProvider", "VideoProvider", "LocalLLMProvider", "LocalTTSProvider", "LocalVideoProvider", "OpenAILLMProvider", "OpenAIProviderError"]
+__all__ = ["ImageProvider", "LLMProvider", "TTSProvider", "LocalImageProvider", "LocalLLMProvider", "LocalTTSProvider", "OpenAILLMProvider", "OpenAIProviderError"]

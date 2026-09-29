@@ -5,7 +5,7 @@ import wave
 from pathlib import Path
 
 from shorts_pipeline.models import Scene
-from shorts_pipeline.providers.base import LLMProvider, TTSProvider, VideoProvider
+from shorts_pipeline.providers.base import ImageProvider, LLMProvider, TTSProvider
 
 
 class LocalLLMProvider(LLMProvider):
@@ -26,12 +26,16 @@ class LocalLLMProvider(LLMProvider):
         )
 
 
-class LocalVideoProvider(VideoProvider):
+class LocalImageProvider(ImageProvider):
     """Creates original colourful PPM illustrations without external APIs."""
 
     PALETTES = ((20, 29, 74), (76, 29, 149), (8, 145, 178), (238, 108, 77), (255, 183, 3), (52, 211, 153))
 
-    def generate_visual(self, scene: Scene, destination: Path) -> Path:
+    @property
+    def file_extension(self) -> str:
+        return ".ppm"
+
+    def generate_image(self, scene: Scene, destination: Path) -> Path:
         width, height = 360, 640  # FFmpeg scales this to 1080x1920.
         base = self.PALETTES[(scene.index - 1) % len(self.PALETTES)]
         destination.parent.mkdir(parents=True, exist_ok=True)
