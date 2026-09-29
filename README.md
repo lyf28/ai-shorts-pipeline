@@ -45,6 +45,20 @@ Image prompts are separate visual briefs rather than raw narration. They cover a
 
 When `IMAGE_PROVIDER=openai`, a missing key stops the pipeline with an actionable error and never falls back to local images. OpenAI image generation may require organization verification; consult the official [OpenAI image generation guide](https://developers.openai.com/api/docs/guides/image-generation) for supported models and account requirements.
 
+## Optional OpenAI TTS
+
+`TTS_PROVIDER=local` remains the fully offline default and produces a deterministic WAV audio track. To synthesize the script with OpenAI instead, keep the same `OPENAI_API_KEY` and set:
+
+```text
+TTS_PROVIDER=openai
+OPENAI_TTS_MODEL=gpt-4o-mini-tts
+OPENAI_TTS_VOICE=alloy
+```
+
+Both `OPENAI_TTS_MODEL` and `OPENAI_TTS_VOICE` are configurable; select values available to your account. The provider requests WAV audio, validates that it contains frames, and uses the actual rendered narration duration to allocate scene and subtitle timings before FFmpeg composition. This avoids trimming narration to the original fixed 24-second estimate. The speech request asks for clear, natural, concise pacing suitable for short-form voiceover.
+
+When `TTS_PROVIDER=openai`, a missing `OPENAI_API_KEY` stops the pipeline with an actionable error and never falls back to local audio. Keep credentials in the environment or untracked `.env` file. When sharing or publishing an output with an OpenAI-generated voice, clearly disclose that the voice is AI-generated, as required by the [OpenAI text-to-speech guide](https://developers.openai.com/api/docs/guides/text-to-speech).
+
 ## Commands
 
 ```powershell
@@ -59,10 +73,10 @@ python -m unittest discover -s tests -v
 
 1. `LLMProvider` creates an idea and 20–30 second script.
 2. The script is split into six scenes and persisted as structured storyboard JSON.
-3. `ImageProvider` creates one still image asset per scene; `TTSProvider` creates audio.
-4. FFmpeg applies deterministic zoom/pan motion, concatenates the scene images at 1080×1920, adds SRT subtitles, muxes audio, and creates MP4.
+3. `ImageProvider` creates one still image asset per scene; `TTSProvider` creates WAV narration and the storyboard is retimed to its measured duration.
+4. FFmpeg applies deterministic zoom/pan motion, concatenates the scene images at 1080×1920, adds SRT subtitles with the aligned timings, muxes audio, and creates MP4.
 5. SQLite records idea, script, storyboard, prompts, generation status, output path, and error logs.
 
-Providers are abstract base classes in `shorts_pipeline/providers/base.py`. The included local implementations make development reproducible. `OpenAILLMProvider` is available for remote idea and script generation, while `OpenAIImageProvider` creates portrait PNG scene assets; both read their key and model settings from the environment. Other remote adapters should follow the same pattern and must not put credentials in source.
+Providers are abstract base classes in `shorts_pipeline/providers/base.py`. The included local implementations make development reproducible. `OpenAILLMProvider` is available for remote idea and script generation, `OpenAIImageProvider` creates portrait PNG scene assets, and `OpenAITTSProvider` creates WAV narration; all read their key and model settings from the environment. Other remote adapters should follow the same pattern and must not put credentials in source.
 
 The pipeline logs every phase, retries provider and FFmpeg work, uses subprocess timeouts, records failures in SQLite, and validates the produced file (with `ffprobe` when available).

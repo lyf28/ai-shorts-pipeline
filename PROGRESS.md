@@ -10,7 +10,7 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 2. `feat: add openai tts provider` - complete.
 3. `feat: align narration timing with scenes` - complete.
 4. `test: add tts provider coverage` - complete.
-5. `docs: document tts setup`.
+5. `docs: document tts setup` - complete.
 
 ## Completed
 
@@ -31,6 +31,7 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 - Added OpenAI Speech API narration provider with configurable model and voice, WAV validation, timeout, retry integration, and explicit provider selection.
 - Aligned scene and subtitle durations to the measured WAV narration duration before FFmpeg composition.
 - Added API-free TTS tests for provider selection, missing credentials, successful WAV handling, failed responses, and persisted timing alignment.
+- Documented local and OpenAI TTS setup, configurable voice/model, WAV output, timing alignment, and AI voice disclosure.
 
 ## Verification
 
@@ -48,6 +49,7 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 - TTS provider regression: `python -m compileall -q shorts_pipeline` and `python -m unittest discover -s tests -v` - 20/20 passed; `TTS_PROVIDER=openai` without a key exited with the expected actionable error.
 - Narration timing regression: focused tests - 7/7 passed; local dry run passed and a full local run created a validated 24-second 1080x1920 MP4 with aligned subtitle timings.
 - TTS coverage: `python -m unittest tests.test_openai_tts_provider -v` - 7/7 passed; full suite - 29/29 passed without an OpenAI API request.
+- Final TTS regression: `python -m unittest discover -s tests -v` - 29/29 passed; `python run.py --dry-run --topic "focus"` passed. A real OpenAI TTS smoke test was not run because `OPENAI_API_KEY` is not configured.
 
 ## Current Issues
 
@@ -59,4 +61,4 @@ Add configurable OpenAI text-to-speech while preserving the offline local pipeli
 
 ## Next Commit
 
-- `docs: document tts setup`.
+- None; perform final history, working-tree, and remote verification.
