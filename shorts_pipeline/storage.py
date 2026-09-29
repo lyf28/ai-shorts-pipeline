@@ -17,10 +17,13 @@ class RunStore:
             CREATE TABLE IF NOT EXISTS pipeline_runs (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               created_at TEXT NOT NULL,
-              idea TEXT, script TEXT, storyboard_json TEXT, prompts_json TEXT,
+              idea TEXT, script TEXT, storyboard_json TEXT, prompts_json TEXT, media_json TEXT,
               generation_status TEXT NOT NULL, output_path TEXT, error_logs TEXT
             )
         """)
+        columns = {row[1] for row in self.connection.execute("PRAGMA table_info(pipeline_runs)")}
+        if "media_json" not in columns:
+            self.connection.execute("ALTER TABLE pipeline_runs ADD COLUMN media_json TEXT")
         self.connection.commit()
 
     def create(self) -> int:
@@ -32,11 +35,11 @@ class RunStore:
         return int(cursor.lastrowid)
 
     def update(self, run_id: int, **fields: Any) -> None:
-        allowed = {"idea", "script", "storyboard_json", "prompts_json", "generation_status", "output_path", "error_logs"}
+        allowed = {"idea", "script", "storyboard_json", "prompts_json", "media_json", "generation_status", "output_path", "error_logs"}
         unknown = set(fields) - allowed
         if unknown:
             raise ValueError(f"Unsupported database fields: {unknown}")
-        serialized = {key: json.dumps(value, ensure_ascii=False) if key in {"storyboard_json", "prompts_json"} else value for key, value in fields.items()}
+        serialized = {key: json.dumps(value, ensure_ascii=False) if key in {"storyboard_json", "prompts_json", "media_json"} else value for key, value in fields.items()}
         assignments = ", ".join(f"{key} = ?" for key in serialized)
         self.connection.execute(f"UPDATE pipeline_runs SET {assignments} WHERE id = ?", (*serialized.values(), run_id))
         self.connection.commit()

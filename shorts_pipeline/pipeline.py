@@ -7,13 +7,15 @@ from pathlib import Path
 from typing import Callable, TypeVar
 
 from shorts_pipeline.config import Settings
-from shorts_pipeline.ffmpeg import audio_duration, build_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
+from shorts_pipeline.ffmpeg import audio_duration, build_hybrid_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
+from shorts_pipeline.media_strategy import select_video_candidates
 from shorts_pipeline.models import Storyboard
 from shorts_pipeline.image_prompts import build_image_prompt
 from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAIImageProvider, OpenAILLMProvider, OpenAITTSProvider, RunwayVideoProvider
 from shorts_pipeline.providers.base import ImageProvider, LLMProvider, TTSProvider, VideoProvider
 from shorts_pipeline.storage import RunStore
 from shorts_pipeline.storyboard import build_storyboard, retime_storyboard, write_subtitles
+from shorts_pipeline.video_budget import VideoBudget, apply_video_budget, estimate_video_cost
 
 LOG = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -103,6 +105,8 @@ class Pipeline:
             self.store.update(run_id, storyboard_json=storyboard.to_dict(), prompts_json=prompts, generation_status="narration_ready")
             LOG.info("Run %s narration is %.2fs; scene timing was aligned to it", run_id, actual_duration)
             images = [retry(lambda scene=scene: self.image.generate_image(scene, work_dir / f"scene_{scene.index}{self.image.file_extension}"), self.settings.retries + 1, f"scene {scene.index} image") for scene in storyboard.scenes]
+            media, media_metadata = self._generate_hybrid_media(storyboard, images, work_dir)
+            self.store.update(run_id, media_json=media_metadata, generation_status="media_ready")
             subtitles = work_dir / "subtitles.srt"
             write_subtitles(storyboard, subtitles)
             output_dir = self.settings.root / "output"
@@ -110,7 +114,7 @@ class Pipeline:
             output = output_dir / f"short_{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}_{run_id}.mp4"
             render_output = work_dir / "render.mp4"
             ffmpeg = resolve_ffmpeg(self.settings.ffmpeg_bin)
-            command = build_video_command(ffmpeg, storyboard, images, audio, subtitles, render_output)
+            command = build_hybrid_video_command(ffmpeg, storyboard, media, audio, subtitles, render_output)
             self.store.update(run_id, generation_status="rendering")
             render_video(command, work_dir, self.settings.timeout_seconds, self.settings.retries)
             validate_video(render_output, resolve_ffprobe(self.settings.ffprobe_bin), ffmpeg, self.settings.timeout_seconds)
@@ -124,3 +128,61 @@ class Pipeline:
             raise
         finally:
             self.store.close()
+
+    def _generate_hybrid_media(self, storyboard: Storyboard, images: list[Path], work_dir: Path) -> tuple[list[Path], dict[str, object]]:
+        media = list(images)
+        metadata: dict[str, object] = {
+            "provider": self.settings.video_provider,
+            "model": self.settings.runway_video_model if self.video else None,
+            "requested_video_scenes": 0,
+            "requested_video_seconds": 0.0,
+            "requested_estimated_cost_usd": 0.0,
+            "generated_video_scenes": 0,
+            "generated_video_seconds": 0.0,
+            "generated_estimated_cost_usd": 0.0,
+            "generated_clip_paths": [],
+            "fallbacks": [],
+        }
+        if self.video is None:
+            return media, metadata
+        budget = VideoBudget(
+            model=self.settings.runway_video_model,
+            clip_duration_seconds=self.settings.runway_video_duration_seconds,
+            max_video_seconds=self.settings.max_video_seconds_per_run,
+            max_cost_usd=self.settings.max_video_cost_per_run_usd,
+            estimated_cost_per_second_usd=self.settings.runway_video_cost_per_second_usd,
+        )
+        plan = apply_video_budget(select_video_candidates(storyboard), budget)
+        metadata["requested_video_scenes"] = len(plan.video_candidates)
+        metadata["requested_video_seconds"] = plan.total_video_seconds
+        metadata["requested_estimated_cost_usd"] = plan.estimated_cost_usd
+        fallbacks: list[dict[str, object]] = [{"scene_index": candidate.scene.index, "reason": "budget_limit"} for candidate in plan.image_candidates]
+        generated_paths: list[str] = []
+        generated_seconds = 0.0
+        for candidate in plan.video_candidates:
+            scene = candidate.scene
+            try:
+                video = retry(
+                    lambda candidate=candidate: self.video.generate_from_image(
+                        candidate.scene,
+                        images[candidate.scene.index - 1],
+                        candidate.motion_prompt,
+                        self.settings.runway_video_duration_seconds,
+                        work_dir / f"scene_{candidate.scene.index}{self.video.file_extension}",
+                    ),
+                    self.settings.retries + 1,
+                    f"scene {scene.index} video",
+                )
+            except Exception as error:
+                LOG.warning("Scene %s video generation fell back to image motion: %s", scene.index, error)
+                fallbacks.append({"scene_index": scene.index, "reason": "generation_failed", "detail": str(error)})
+                continue
+            media[scene.index - 1] = video
+            generated_paths.append(str(video.resolve()))
+            generated_seconds += self.settings.runway_video_duration_seconds
+        metadata["generated_video_scenes"] = len(generated_paths)
+        metadata["generated_video_seconds"] = generated_seconds
+        metadata["generated_estimated_cost_usd"] = estimate_video_cost(generated_seconds, self.settings.runway_video_cost_per_second_usd)
+        metadata["generated_clip_paths"] = generated_paths
+        metadata["fallbacks"] = fallbacks
+        return media, metadata

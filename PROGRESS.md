@@ -12,7 +12,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 4. `feat: add scene media strategy` - complete.
 5. `feat: add video cost budget` - complete.
 6. `feat: compose mixed image and video scenes` - complete.
-7. `feat: integrate hybrid media pipeline`.
+7. `feat: integrate hybrid media pipeline` - complete.
 8. `test: add hybrid media pipeline coverage`.
 9. `docs: document runway video generation`.
 
@@ -42,6 +42,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 - Added simple hook/development/payoff scene metadata and deterministic high-value video candidates with motion-only prompts.
 - Added centralized model pricing metadata and deterministic per-run video seconds and USD budget enforcement.
 - Extended FFmpeg composition to normalize and concatenate mixed MP4 clips and image-motion scenes.
+- Integrated budgeted per-scene video generation, bounded-retry image fallback, and persisted hybrid media metadata into the pipeline.
 
 ## Verification
 
@@ -66,6 +67,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 - Scene media strategy: focused tests - 3/3 passed; full suite - 37/37 passed without a Runway API request.
 - Video budget: focused tests - 3/3 passed; full suite - 40/40 passed without a Runway API request.
 - Mixed FFmpeg composition: focused tests - 3/3 passed; full suite - 41/41 passed without a Runway API request.
+- Hybrid pipeline: focused tests - 4/4 passed; full suite - 43/43 passed. A local full run produced a validated 1080x1920 MP4 and persisted local media metadata.
 
 ## Current Issues
 
@@ -77,4 +79,4 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 
 ## Next Commit
 
-- `feat: integrate hybrid media pipeline`.
+- `test: add hybrid media pipeline coverage`.
