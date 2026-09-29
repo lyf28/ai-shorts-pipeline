@@ -8,7 +8,7 @@ Add a configurable OpenAI LLM provider for idea and short-script generation whil
 
 1. `chore: add openai llm configuration` - complete.
 2. `feat: add openai llm provider` - complete.
-3. `test: add openai llm provider coverage`.
+3. `test: add openai llm provider coverage` - complete.
 4. `docs: document openai llm setup`.
 
 ## Completed
@@ -18,6 +18,7 @@ Add a configurable OpenAI LLM provider for idea and short-script generation whil
 - Previous goal: preserved local providers, SQLite persistence, FFmpeg composition, subtitles, validation, retry handling, logging, dry-run behavior, and automated coverage.
 - Added configurable `OPENAI_API_KEY` and `OPENAI_MODEL` settings while keeping `LLM_PROVIDER=local` as the default.
 - Added an OpenAI structured-output LLM adapter and explicit OpenAI provider selection.
+- Added API-free coverage for OpenAI provider selection and structured-response handling.
 
 ## Verification
 
@@ -34,4 +35,4 @@ Add a configurable OpenAI LLM provider for idea and short-script generation whil
 
 ## Next Commit
 
-- `test: add openai llm provider coverage`.
+- `docs: document openai llm setup`.
