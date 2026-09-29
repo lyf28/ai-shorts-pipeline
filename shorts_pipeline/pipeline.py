@@ -10,8 +10,8 @@ from shorts_pipeline.config import Settings
 from shorts_pipeline.ffmpeg import audio_duration, build_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
 from shorts_pipeline.models import Storyboard
 from shorts_pipeline.image_prompts import build_image_prompt
-from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAIImageProvider, OpenAILLMProvider, OpenAITTSProvider
-from shorts_pipeline.providers.base import ImageProvider, LLMProvider, TTSProvider
+from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAIImageProvider, OpenAILLMProvider, OpenAITTSProvider, RunwayVideoProvider
+from shorts_pipeline.providers.base import ImageProvider, LLMProvider, TTSProvider, VideoProvider
 from shorts_pipeline.storage import RunStore
 from shorts_pipeline.storyboard import build_storyboard, retime_storyboard, write_subtitles
 
@@ -64,10 +64,21 @@ def select_providers(settings: Settings) -> tuple[LLMProvider, ImageProvider, TT
     return llm, image, tts
 
 
+def select_video_provider(settings: Settings) -> VideoProvider | None:
+    if settings.video_provider == "local":
+        return None
+    if settings.video_provider == "runway":
+        if not settings.runway_api_key:
+            raise ValueError("VIDEO_PROVIDER=runway requires RUNWAY_API_KEY. Set it in your environment or .env before running the pipeline.")
+        return RunwayVideoProvider(settings.runway_api_key, settings.runway_video_model, settings.timeout_seconds)
+    raise ValueError("Unsupported VIDEO_PROVIDER. Use 'local' or 'runway'.")
+
+
 class Pipeline:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.llm, self.image, self.tts = select_providers(settings)
+        self.video = select_video_provider(settings)
         self.store = RunStore(settings.root / "data" / "pipeline.sqlite3")
 
     def run(self, topic: str | None = None, dry_run: bool = False) -> Path | None:

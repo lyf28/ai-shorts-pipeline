@@ -2,3 +2,5 @@
 imageio-ffmpeg>=0.5.1
 # Only used when an OpenAI LLM, image, or TTS provider is selected; local mode stays entirely offline.
 openai>=1.66.0
+# Only used when VIDEO_PROVIDER=runway; local mode remains fully offline.
+runwayml>=4.0.0
