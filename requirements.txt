@@ -1,4 +1,4 @@
-# The local MVP uses only the Python standard library at runtime.
-# Install imageio-ffmpeg if you do not have an ffmpeg executable on PATH:
+# `imageio-ffmpeg` supplies FFmpeg if it is not already on PATH.
 imageio-ffmpeg>=0.5.1
+# Only used when LLM_PROVIDER=openai; local mode stays entirely offline.
 openai>=1.66.0

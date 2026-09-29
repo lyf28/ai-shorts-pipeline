@@ -16,6 +16,20 @@ The default `local` providers require no credentials and generate deterministic 
 
 `imageio-ffmpeg` supplies FFmpeg when it is not installed on PATH. Alternatively set `FFMPEG_BIN` in `.env` to an existing executable. Set `FFPROBE_BIN` too for stream-dimension validation.
 
+## Optional OpenAI LLM
+
+`LLM_PROVIDER=local` is the default and remains fully offline. To generate the idea and 20â€“30 second script with OpenAI instead, install the requirements, copy `.env.example` to `.env`, and set:
+
+```text
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+```
+
+`OPENAI_MODEL` is configurable; choose a model that supports structured outputs. The provider uses the Responses API with strict JSON schemas for its idea and script fields, then passes the resulting text through the unchanged storyboard and media pipeline. Its prompts require an immediate hook, a simple visual premise, story progression, and a distinct payoff or closing beat rather than generic motivational filler.
+
+When `LLM_PROVIDER=openai`, a missing `OPENAI_API_KEY` stops the pipeline with an actionable error. It does not silently fall back to local mode. Keep the key only in your environment or untracked `.env` file; never commit it.
+
 ## Commands
 
 ```powershell
@@ -34,6 +48,6 @@ python -m unittest discover -s tests -v
 4. FFmpeg concatenates the scene visuals at 1080×1920, adds SRT subtitles, muxes audio, and creates MP4.
 5. SQLite records idea, script, storyboard, prompts, generation status, output path, and error logs.
 
-Providers are abstract base classes in `shorts_pipeline/providers/base.py`. The included local implementations make development reproducible. To use a remote model, add an adapter that implements the relevant interface, read its key from the environment, and register it in `select_providers`; do not put credentials in source.
+Providers are abstract base classes in `shorts_pipeline/providers/base.py`. The included local implementations make development reproducible. `OpenAILLMProvider` is available for remote idea and script generation; its key and model are read from the environment. Other remote adapters should follow the same pattern and must not put credentials in source.
 
 The pipeline logs every phase, retries provider and FFmpeg work, uses subprocess timeouts, records failures in SQLite, and validates the produced file (with `ffprobe` when available).
