@@ -14,7 +14,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 6. `feat: compose mixed image and video scenes` - complete.
 7. `feat: integrate hybrid media pipeline` - complete.
 8. `test: add hybrid media pipeline coverage` - complete.
-9. `docs: document runway video generation`.
+9. `docs: document runway video generation` - complete.
 
 ## Completed
 
@@ -44,6 +44,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 - Extended FFmpeg composition to normalize and concatenate mixed MP4 clips and image-motion scenes.
 - Integrated budgeted per-scene video generation, bounded-retry image fallback, and persisted hybrid media metadata into the pipeline.
 - Added a real local mixed-media FFmpeg integration test alongside API-free Runway, budget, fallback, and pipeline coverage.
+- Documented local-first Runway setup, hybrid selection, pre-request budget controls, fallback behavior, and media metadata.
 
 ## Verification
 
@@ -70,6 +71,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 - Mixed FFmpeg composition: focused tests - 3/3 passed; full suite - 41/41 passed without a Runway API request.
 - Hybrid pipeline: focused tests - 4/4 passed; full suite - 43/43 passed. A local full run produced a validated 1080x1920 MP4 and persisted local media metadata.
 - Hybrid coverage: real FFmpeg mixed-media integration passed; full suite - 44/44 passed without a Runway API request.
+- Final hybrid regression: `python -m unittest discover -s tests -v` - 44/44 passed; `python run.py --dry-run --topic "cost aware hybrid"` passed. A real Runway smoke test was not run because `RUNWAY_API_KEY` is not configured.
 
 ## Current Issues
 
@@ -81,4 +83,4 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 
 ## Next Commit
 
-- `docs: document runway video generation`.
+- None; perform final history, working-tree, and remote verification.

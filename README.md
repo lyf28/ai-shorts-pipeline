@@ -59,6 +59,26 @@ Both `OPENAI_TTS_MODEL` and `OPENAI_TTS_VOICE` are configurable; select values a
 
 When `TTS_PROVIDER=openai`, a missing `OPENAI_API_KEY` stops the pipeline with an actionable error and never falls back to local audio. Keep credentials in the environment or untracked `.env` file. When sharing or publishing an output with an OpenAI-generated voice, clearly disclose that the voice is AI-generated, as required by the [OpenAI text-to-speech guide](https://developers.openai.com/api/docs/guides/text-to-speech).
 
+## Optional Runway hybrid video
+
+`VIDEO_PROVIDER=local` is the default, so the existing offline image-plus-Ken-Burns pipeline remains unchanged and requires no Runway account. To selectively animate high-value storyboard scenes with Runway, install the requirements, use a Runway Dev API key, and set:
+
+```text
+VIDEO_PROVIDER=runway
+RUNWAY_API_KEY=your_runway_api_key_here
+RUNWAY_VIDEO_MODEL=gen4_turbo
+RUNWAY_VIDEO_DURATION_SECONDS=4
+RUNWAY_VIDEO_COST_PER_SECOND_USD=0.05
+MAX_VIDEO_SECONDS_PER_RUN=12
+MAX_VIDEO_COST_PER_RUN_USD=0.75
+```
+
+The provider uses the official Runway Python SDK to submit an asynchronous image-to-video task, poll its status, and download the resulting MP4. It sends the existing scene image as a data-URI start frame, so use `IMAGE_PROVIDER=openai` (PNG output) for real Runway animation; Runway accepts PNG, JPEG, and WebP start frames. `RUNWAY_VIDEO_MODEL` is configurable and the default `gen4_turbo` is not embedded in pipeline logic. See the official [Runway API getting-started guide](https://docs.dev.runwayml.com/guides/using-the-api/) for account setup and supported model options.
+
+The hybrid strategy marks the opening hook, a middle escalation, and the final payoff as video candidates. Before making any Runway request, it applies both video-seconds and USD limits, keeping higher-priority candidates and automatically retaining image motion for the rest. `RUNWAY_VIDEO_COST_PER_SECOND_USD` is an operator-provided estimate used only for this guardrail; review current pricing in the [Runway billing documentation](https://docs.dev.runwayml.com/usage/billing/) before production use.
+
+If an individual Runway task fails or times out after the configured bounded retry count, only that scene falls back to its original image motion. In contrast, `VIDEO_PROVIDER=runway` with no `RUNWAY_API_KEY` fails immediately with an actionable configuration error. The pipeline records provider, model, requested/generated seconds, estimated costs, generated clip paths, and fallback reasons in the run's `media_json` SQLite field. It never stores API keys.
+
 ## Commands
 
 ```powershell
@@ -74,9 +94,10 @@ python -m unittest discover -s tests -v
 1. `LLMProvider` creates an idea and 20–30 second script.
 2. The script is split into six scenes and persisted as structured storyboard JSON.
 3. `ImageProvider` creates one still image asset per scene; `TTSProvider` creates WAV narration and the storyboard is retimed to its measured duration.
-4. FFmpeg applies deterministic zoom/pan motion, concatenates the scene images at 1080×1920, adds SRT subtitles with the aligned timings, muxes audio, and creates MP4.
-5. SQLite records idea, script, storyboard, prompts, generation status, output path, and error logs.
+4. When selected and within budget, `VideoProvider` turns only high-value image scenes into short MP4 clips; failed clips keep their image-motion fallback.
+5. FFmpeg normalizes mixed clips and images at 1080×1920, adds SRT subtitles with aligned timings, muxes audio, and creates MP4.
+6. SQLite records idea, script, storyboard, prompts, media cost/fallback metadata, generation status, output path, and error logs.
 
-Providers are abstract base classes in `shorts_pipeline/providers/base.py`. The included local implementations make development reproducible. `OpenAILLMProvider` is available for remote idea and script generation, `OpenAIImageProvider` creates portrait PNG scene assets, and `OpenAITTSProvider` creates WAV narration; all read their key and model settings from the environment. Other remote adapters should follow the same pattern and must not put credentials in source.
+Providers are abstract base classes in `shorts_pipeline/providers/base.py`. The included local implementations make development reproducible. `OpenAILLMProvider` is available for remote idea and script generation, `OpenAIImageProvider` creates portrait PNG scene assets, `OpenAITTSProvider` creates WAV narration, and `RunwayVideoProvider` creates short image-to-video MP4 clips; all read their key and model settings from the environment. Other remote adapters should follow the same pattern and must not put credentials in source.
 
 The pipeline logs every phase, retries provider and FFmpeg work, uses subprocess timeouts, records failures in SQLite, and validates the produced file (with `ffprobe` when available).
