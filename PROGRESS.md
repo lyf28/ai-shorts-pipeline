@@ -11,9 +11,10 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 3. `feat: add runway video provider` - complete.
 4. `feat: add scene media strategy` - complete.
 5. `feat: add video cost budget` - complete.
-6. `feat: compose mixed image and video scenes`.
-7. `test: add hybrid media pipeline coverage`.
-8. `docs: document runway video generation`.
+6. `feat: compose mixed image and video scenes` - complete.
+7. `feat: integrate hybrid media pipeline`.
+8. `test: add hybrid media pipeline coverage`.
+9. `docs: document runway video generation`.
 
 ## Completed
 
@@ -40,6 +41,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 - Added Runway image-to-video task submission, bounded polling, MP4 download validation, and explicit startup configuration checks.
 - Added simple hook/development/payoff scene metadata and deterministic high-value video candidates with motion-only prompts.
 - Added centralized model pricing metadata and deterministic per-run video seconds and USD budget enforcement.
+- Extended FFmpeg composition to normalize and concatenate mixed MP4 clips and image-motion scenes.
 
 ## Verification
 
@@ -63,6 +65,7 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 - Runway provider: focused mocked tests - 4/4 passed; full suite - 34/34 passed without a Runway API request.
 - Scene media strategy: focused tests - 3/3 passed; full suite - 37/37 passed without a Runway API request.
 - Video budget: focused tests - 3/3 passed; full suite - 40/40 passed without a Runway API request.
+- Mixed FFmpeg composition: focused tests - 3/3 passed; full suite - 41/41 passed without a Runway API request.
 
 ## Current Issues
 
@@ -74,4 +77,4 @@ Add a cost-aware hybrid image/video pipeline that selectively animates high-valu
 
 ## Next Commit
 
-- `feat: compose mixed image and video scenes`.
+- `feat: integrate hybrid media pipeline`.

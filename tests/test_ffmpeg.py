@@ -3,7 +3,7 @@ import unittest
 import wave
 from pathlib import Path
 
-from shorts_pipeline.ffmpeg import audio_duration, build_video_command
+from shorts_pipeline.ffmpeg import audio_duration, build_hybrid_video_command, build_video_command
 from shorts_pipeline.storyboard import build_storyboard
 
 
@@ -28,3 +28,15 @@ class FFmpegCommandTests(unittest.TestCase):
                 audio.setframerate(100)
                 audio.writeframes(b"\0\0" * 250)
             self.assertEqual(audio_duration(path), 2.5)
+
+    def test_hybrid_command_normalizes_video_and_keeps_image_motion(self) -> None:
+        board = build_storyboard("Idea", "One. Two. Three. Four. Five. Six.")
+        media = [Path("scene_1.mp4"), *[Path(f"scene_{index}.ppm") for index in range(2, 7)]]
+        command = build_hybrid_video_command("ffmpeg", board, media, Path("audio.wav"), Path("subtitles.srt"), Path("out.mp4"))
+        joined = " ".join(command)
+
+        self.assertIn("-stream_loop -1 -i scene_1.mp4", joined)
+        self.assertIn("trim=duration=4.0", joined)
+        self.assertIn("fps=30", joined)
+        self.assertIn("zoompan=", joined)
+        self.assertIn("concat=n=6:v=1:a=0", joined)

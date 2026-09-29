@@ -58,26 +58,35 @@ def image_motion_filter(index: int) -> str:
 
 
 def build_video_command(ffmpeg: str, storyboard: Storyboard, images: list[Path], audio: Path, subtitles: Path, output: Path) -> list[str]:
-    if len(images) != len(storyboard.scenes):
+    return build_hybrid_video_command(ffmpeg, storyboard, images, audio, subtitles, output)
+
+
+def build_hybrid_video_command(ffmpeg: str, storyboard: Storyboard, media: list[Path], audio: Path, subtitles: Path, output: Path) -> list[str]:
+    if len(media) != len(storyboard.scenes):
         raise ValueError("Every storyboard scene needs exactly one visual asset")
     command = [ffmpeg, "-y"]
-    for scene, image in zip(storyboard.scenes, images, strict=True):
+    filters: list[str] = []
+    for index, (scene, asset) in enumerate(zip(storyboard.scenes, media, strict=True)):
         # Use relative names: some Windows FFmpeg builds cannot open Unicode absolute paths.
-        command.extend(["-loop", "1", "-framerate", "30", "-t", str(scene.duration_seconds), "-i", image.name])
+        if asset.suffix.lower() == ".mp4":
+            command.extend(["-stream_loop", "-1", "-i", asset.name])
+            filters.append(
+                f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
+                f"crop=1080:1920,fps=30,trim=duration={scene.duration_seconds},setpts=PTS-STARTPTS,setsar=1[v{index}]"
+            )
+        else:
+            command.extend(["-loop", "1", "-framerate", "30", "-t", str(scene.duration_seconds), "-i", asset.name])
+            filters.append(
+                f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
+                f"crop=1080:1920,{image_motion_filter(index)},setsar=1[v{index}]"
+            )
     command.extend(["-i", audio.name])
-    filters = [
-        (
-            f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
-            f"crop=1080:1920,{image_motion_filter(index)},setsar=1[v{index}]"
-        )
-        for index in range(len(images))
-    ]
-    filters.append("".join(f"[v{i}]" for i in range(len(images))) + f"concat=n={len(images)}:v=1:a=0[concat_video]")
+    filters.append("".join(f"[v{i}]" for i in range(len(media))) + f"concat=n={len(media)}:v=1:a=0[concat_video]")
     # Subtitle filtering must be part of the complex graph because concat already is.
     # The command executes in the subtitles directory, avoiding Windows drive-letter escaping.
     filters.append(f"[concat_video]subtitles={subtitles.name}[video]")
     command.extend([
-        "-filter_complex", ";".join(filters), "-map", "[video]", "-map", f"{len(images)}:a",
+        "-filter_complex", ";".join(filters), "-map", "[video]", "-map", f"{len(media)}:a",
         "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
         "-r", "30", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", output.name,
     ])
