@@ -27,10 +27,12 @@ class OpenAILLMProviderTests(unittest.TestCase):
         values: dict[str, object] = {
             "root": Path("."),
             "llm_provider": "local",
+            "image_provider": "local",
             "video_provider": "local",
             "tts_provider": "local",
             "openai_api_key": None,
             "openai_model": "test-model",
+            "openai_image_model": "test-image-model",
             "ffmpeg_bin": None,
             "ffprobe_bin": None,
             "timeout_seconds": 30,

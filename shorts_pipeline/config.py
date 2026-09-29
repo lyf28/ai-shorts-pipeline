@@ -21,10 +21,12 @@ def load_dotenv(path: Path) -> None:
 class Settings:
     root: Path
     llm_provider: str
+    image_provider: str
     video_provider: str
     tts_provider: str
     openai_api_key: str | None
     openai_model: str
+    openai_image_model: str
     ffmpeg_bin: str | None
     ffprobe_bin: str | None
     timeout_seconds: int
@@ -36,10 +38,12 @@ class Settings:
         return cls(
             root=root,
             llm_provider=os.getenv("LLM_PROVIDER", "local"),
+            image_provider=os.getenv("IMAGE_PROVIDER", "local"),
             video_provider=os.getenv("VIDEO_PROVIDER", "local"),
             tts_provider=os.getenv("TTS_PROVIDER", "local"),
             openai_api_key=os.getenv("OPENAI_API_KEY") or None,
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            openai_image_model=os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-2.5-flare"),
             ffmpeg_bin=os.getenv("FFMPEG_BIN") or None,
             ffprobe_bin=os.getenv("FFPROBE_BIN") or None,
             timeout_seconds=int(os.getenv("PIPELINE_TIMEOUT_SECONDS", "180")),

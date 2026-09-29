@@ -2,14 +2,16 @@
 
 ## Goal
 
-Add a configurable OpenAI LLM provider for idea and short-script generation while preserving the offline local provider as the default development mode.
+Add configurable AI image generation and deterministic still-image motion while preserving the offline local pipeline as the default development mode.
 
 ## Planned Commits
 
-1. `chore: add openai llm configuration` - complete.
-2. `feat: add openai llm provider` - complete.
-3. `test: add openai llm provider coverage` - complete.
-4. `docs: document openai llm setup` - complete.
+1. `chore: add image provider configuration` - complete.
+2. `feat: add image provider interface`.
+3. `feat: add openai image provider`.
+4. `feat: add image motion composition`.
+5. `test: add image provider coverage`.
+6. `docs: document ai image generation`.
 
 ## Completed
 
@@ -20,6 +22,7 @@ Add a configurable OpenAI LLM provider for idea and short-script generation whil
 - Added an OpenAI structured-output LLM adapter and explicit OpenAI provider selection.
 - Added API-free coverage for OpenAI provider selection and structured-response handling.
 - Documented the optional OpenAI LLM setup, model configuration, and explicit missing-key behavior.
+- Added `IMAGE_PROVIDER` and `OPENAI_IMAGE_MODEL` configuration while retaining local defaults.
 
 ## Verification
 
@@ -40,4 +43,4 @@ Add a configurable OpenAI LLM provider for idea and short-script generation whil
 
 ## Next Commit
 
-- None; perform final history, working-tree, and remote verification.
+- `feat: add image provider interface`.
