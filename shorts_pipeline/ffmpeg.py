@@ -33,15 +33,31 @@ def resolve_ffprobe(configured: str | None = None) -> str | None:
     return shutil.which("ffprobe")
 
 
+def image_motion_filter(index: int) -> str:
+    """Return a subtle deterministic Ken Burns movement for one scene."""
+    zoom = "min(max(zoom,pzoom)+0.0005,1.08)"
+    if index % 2:
+        x, y = "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"
+    else:
+        x, y = "min(iw-iw/zoom,on*1.25)", "ih/2-(ih/zoom/2)"
+    return f"zoompan=z='{zoom}':x='{x}':y='{y}':d=1:s=1080x1920:fps=30"
+
+
 def build_video_command(ffmpeg: str, storyboard: Storyboard, images: list[Path], audio: Path, subtitles: Path, output: Path) -> list[str]:
     if len(images) != len(storyboard.scenes):
         raise ValueError("Every storyboard scene needs exactly one visual asset")
     command = [ffmpeg, "-y"]
     for scene, image in zip(storyboard.scenes, images, strict=True):
         # Use relative names: some Windows FFmpeg builds cannot open Unicode absolute paths.
-        command.extend(["-loop", "1", "-t", str(scene.duration_seconds), "-i", image.name])
+        command.extend(["-loop", "1", "-framerate", "30", "-t", str(scene.duration_seconds), "-i", image.name])
     command.extend(["-i", audio.name])
-    filters = [f"[{index}:v]scale=1080:1920:flags=lanczos,setsar=1[v{index}]" for index in range(len(images))]
+    filters = [
+        (
+            f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
+            f"crop=1080:1920,{image_motion_filter(index)},setsar=1[v{index}]"
+        )
+        for index in range(len(images))
+    ]
     filters.append("".join(f"[v{i}]" for i in range(len(images))) + f"concat=n={len(images)}:v=1:a=0[concat_video]")
     # Subtitle filtering must be part of the complex graph because concat already is.
     # The command executes in the subtitles directory, avoiding Windows drive-letter escaping.

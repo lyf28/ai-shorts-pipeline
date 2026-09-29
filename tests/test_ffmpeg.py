@@ -11,6 +11,8 @@ class FFmpegCommandTests(unittest.TestCase):
         command = build_video_command("ffmpeg", board, [Path(f"scene_{i}.ppm") for i in range(6)], Path("audio.wav"), Path("subtitles.srt"), Path("out.mp4"))
         joined = " ".join(command)
         self.assertIn("scale=1080:1920", joined)
+        self.assertIn("zoompan=", joined)
+        self.assertIn("-framerate 30", joined)
         self.assertIn("subtitles=subtitles.srt", joined)
         self.assertIn("libx264", command)
         self.assertEqual(command[-1], "out.mp4")
