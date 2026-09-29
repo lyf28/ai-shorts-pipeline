@@ -8,7 +8,7 @@ Add configurable AI image generation and deterministic still-image motion while 
 
 1. `chore: add image provider configuration` - complete.
 2. `feat: add image provider interface` - complete.
-3. `feat: add openai image provider`.
+3. `feat: add openai image provider` - complete.
 4. `feat: add image motion composition`.
 5. `test: add image provider coverage`.
 6. `docs: document ai image generation`.
@@ -24,6 +24,7 @@ Add configurable AI image generation and deterministic still-image motion while 
 - Documented the optional OpenAI LLM setup, model configuration, and explicit missing-key behavior.
 - Added `IMAGE_PROVIDER` and `OPENAI_IMAGE_MODEL` configuration while retaining local defaults.
 - Replaced the misnamed static visual provider contract with `ImageProvider`.
+- Added an OpenAI Images API adapter and visual-prompt generation for portrait scene assets.
 
 ## Verification
 
@@ -44,4 +45,4 @@ Add configurable AI image generation and deterministic still-image motion while 
 
 ## Next Commit
 
-- `feat: add openai image provider`.
+- `feat: add image motion composition`.

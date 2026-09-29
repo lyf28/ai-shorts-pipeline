@@ -9,7 +9,8 @@ from typing import Callable, TypeVar
 from shorts_pipeline.config import Settings
 from shorts_pipeline.ffmpeg import build_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
 from shorts_pipeline.models import Storyboard
-from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAILLMProvider
+from shorts_pipeline.image_prompts import build_image_prompt
+from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAIImageProvider, OpenAILLMProvider
 from shorts_pipeline.providers.base import ImageProvider, LLMProvider, TTSProvider
 from shorts_pipeline.storage import RunStore
 from shorts_pipeline.storyboard import build_storyboard, write_subtitles
@@ -31,7 +32,7 @@ def retry(operation: Callable[[], T], attempts: int, label: str) -> T:
 
 
 def select_providers(settings: Settings) -> tuple[LLMProvider, ImageProvider, TTSProvider]:
-    unsupported = [name for name, value in (("IMAGE_PROVIDER", settings.image_provider), ("TTS_PROVIDER", settings.tts_provider)) if value != "local"]
+    unsupported = [name for name, value in (("TTS_PROVIDER", settings.tts_provider),) if value != "local"]
     if unsupported:
         raise ValueError(f"Unsupported provider selection: {', '.join(unsupported)}. This MVP ships local providers; add an adapter without changing the pipeline.")
     if settings.llm_provider == "local":
@@ -42,7 +43,15 @@ def select_providers(settings: Settings) -> tuple[LLMProvider, ImageProvider, TT
         llm = OpenAILLMProvider(settings.openai_api_key, settings.openai_model, settings.timeout_seconds)
     else:
         raise ValueError("Unsupported LLM_PROVIDER. Use 'local' or 'openai'.")
-    return llm, LocalImageProvider(), LocalTTSProvider()
+    if settings.image_provider == "local":
+        image: ImageProvider = LocalImageProvider()
+    elif settings.image_provider == "openai":
+        if not settings.openai_api_key:
+            raise ValueError("IMAGE_PROVIDER=openai requires OPENAI_API_KEY. Set it in your environment or .env before running the pipeline.")
+        image = OpenAIImageProvider(settings.openai_api_key, settings.openai_image_model, settings.timeout_seconds)
+    else:
+        raise ValueError("Unsupported IMAGE_PROVIDER. Use 'local' or 'openai'.")
+    return llm, image, LocalTTSProvider()
 
 
 class Pipeline:
@@ -59,7 +68,7 @@ class Pipeline:
             idea = retry(lambda: self.llm.generate_idea(topic), self.settings.retries + 1, "idea generation")
             script = retry(lambda: self.llm.generate_script(idea), self.settings.retries + 1, "script generation")
             storyboard = build_storyboard(idea, script)
-            prompts = [scene.visual_prompt for scene in storyboard.scenes]
+            prompts = [build_image_prompt(scene) for scene in storyboard.scenes]
             self.store.update(run_id, idea=idea, script=script, storyboard_json=storyboard.to_dict(), prompts_json=prompts, generation_status="storyboard_ready")
             LOG.info("Run %s created %s scenes (%ss total)", run_id, len(storyboard.scenes), sum(s.duration_seconds for s in storyboard.scenes))
             if dry_run:
