@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from shorts_pipeline.video_budget import default_cost_per_second
+
 
 def load_dotenv(path: Path) -> None:
     """Tiny .env reader so an offline run has no bootstrap dependency."""
@@ -43,6 +45,7 @@ class Settings:
     @classmethod
     def from_root(cls, root: Path) -> "Settings":
         load_dotenv(root / ".env")
+        runway_video_model = os.getenv("RUNWAY_VIDEO_MODEL", "gen4_turbo")
         return cls(
             root=root,
             llm_provider=os.getenv("LLM_PROVIDER", "local"),
@@ -55,9 +58,9 @@ class Settings:
             openai_tts_model=os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts"),
             openai_tts_voice=os.getenv("OPENAI_TTS_VOICE", "alloy"),
             runway_api_key=os.getenv("RUNWAY_API_KEY") or None,
-            runway_video_model=os.getenv("RUNWAY_VIDEO_MODEL", "gen4_turbo"),
+            runway_video_model=runway_video_model,
             runway_video_duration_seconds=float(os.getenv("RUNWAY_VIDEO_DURATION_SECONDS", "4")),
-            runway_video_cost_per_second_usd=float(os.getenv("RUNWAY_VIDEO_COST_PER_SECOND_USD", "0.05")),
+            runway_video_cost_per_second_usd=float(os.getenv("RUNWAY_VIDEO_COST_PER_SECOND_USD", str(default_cost_per_second(runway_video_model)))),
             max_video_seconds_per_run=float(os.getenv("MAX_VIDEO_SECONDS_PER_RUN", "12")),
             max_video_cost_per_run_usd=float(os.getenv("MAX_VIDEO_COST_PER_RUN_USD", "0.75")),
             ffmpeg_bin=os.getenv("FFMPEG_BIN") or None,
