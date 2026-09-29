@@ -11,7 +11,21 @@ class PipelineTests(unittest.TestCase):
     def test_dry_run_persists_storyboard_without_media_tools(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            settings = Settings(root, "local", "local", "local", None, "gpt-4o-mini", "gpt-image-2.5-flare", None, None, 30, 0)
+            settings = Settings(
+                root,
+                "local",
+                "local",
+                "local",
+                None,
+                "gpt-4o-mini",
+                "gpt-image-2.5-flare",
+                "gpt-4o-mini-tts",
+                "alloy",
+                None,
+                None,
+                30,
+                0,
+            )
             result = Pipeline(settings).run(topic="focus", dry_run=True)
             self.assertIsNone(result)
             store = RunStore(root / "data" / "pipeline.sqlite3")

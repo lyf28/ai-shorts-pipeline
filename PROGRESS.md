@@ -2,16 +2,15 @@
 
 ## Goal
 
-Add configurable AI image generation and deterministic still-image motion while preserving the offline local pipeline as the default development mode.
+Add configurable OpenAI text-to-speech while preserving the offline local pipeline and aligning scene timing to the rendered narration.
 
 ## Planned Commits
 
-1. `chore: add image provider configuration` - complete.
-2. `feat: add image provider interface` - complete.
-3. `feat: add openai image provider` - complete.
-4. `feat: add image motion composition` - complete.
-5. `test: add image provider coverage` - complete.
-6. `docs: document ai image generation` - complete.
+1. `chore: add tts provider configuration` - complete.
+2. `feat: add openai tts provider`.
+3. `feat: align narration timing with scenes`.
+4. `test: add tts provider coverage`.
+5. `docs: document tts setup`.
 
 ## Completed
 
@@ -28,6 +27,7 @@ Add configurable AI image generation and deterministic still-image motion while 
 - Added deterministic FFmpeg Ken Burns motion for still-image scenes.
 - Added API-free coverage for image provider selection, prompting, output handling, and failures.
 - Documented OpenAI image setup, portrait scene assets, and FFmpeg motion behavior.
+- Added configurable OpenAI TTS model and voice settings while keeping local TTS as the default.
 
 ## Verification
 
@@ -41,6 +41,7 @@ Add configurable AI image generation and deterministic still-image motion while 
 - Full suite: `python -m unittest discover -s tests -v` - 20/20 passed without an OpenAI image request.
 - Local regression: `python run.py --dry-run --topic "focus"` and `python run.py --topic "building better habits" --verbose` both passed; the latter created a validated 24-second 1080x1920 H.264/AAC MP4 with deterministic image motion.
 - Real OpenAI image smoke test was not run because `OPENAI_API_KEY` is not configured in this environment.
+- TTS configuration regression: `python -m unittest discover -s tests -v` - 20/20 passed without an OpenAI API request.
 
 ## Current Issues
 
@@ -52,4 +53,4 @@ Add configurable AI image generation and deterministic still-image motion while 
 
 ## Next Commit
 
-- None; perform final history, working-tree, and remote verification.
+- `feat: add openai tts provider`.

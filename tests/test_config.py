@@ -8,16 +8,19 @@ from shorts_pipeline.config import Settings
 
 
 class SettingsTests(unittest.TestCase):
-    def test_reads_openai_llm_settings_from_environment(self) -> None:
+    def test_reads_openai_provider_settings_from_environment(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             with patch.dict(
                 os.environ,
                 {
                     "LLM_PROVIDER": "openai",
                     "IMAGE_PROVIDER": "openai",
+                    "TTS_PROVIDER": "openai",
                     "OPENAI_API_KEY": "test-key",
                     "OPENAI_MODEL": "test-model",
                     "OPENAI_IMAGE_MODEL": "test-image-model",
+                    "OPENAI_TTS_MODEL": "test-tts-model",
+                    "OPENAI_TTS_VOICE": "test-voice",
                 },
                 clear=False,
             ):
@@ -25,6 +28,9 @@ class SettingsTests(unittest.TestCase):
 
         self.assertEqual(settings.llm_provider, "openai")
         self.assertEqual(settings.image_provider, "openai")
+        self.assertEqual(settings.tts_provider, "openai")
         self.assertEqual(settings.openai_api_key, "test-key")
         self.assertEqual(settings.openai_model, "test-model")
         self.assertEqual(settings.openai_image_model, "test-image-model")
+        self.assertEqual(settings.openai_tts_model, "test-tts-model")
+        self.assertEqual(settings.openai_tts_voice, "test-voice")

@@ -37,6 +37,8 @@ class OpenAIImageProviderTests(unittest.TestCase):
             "openai_api_key": None,
             "openai_model": "test-llm-model",
             "openai_image_model": "test-image-model",
+            "openai_tts_model": "test-tts-model",
+            "openai_tts_voice": "test-voice",
             "ffmpeg_bin": None,
             "ffprobe_bin": None,
             "timeout_seconds": 30,

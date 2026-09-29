@@ -26,6 +26,8 @@ class Settings:
     openai_api_key: str | None
     openai_model: str
     openai_image_model: str
+    openai_tts_model: str
+    openai_tts_voice: str
     ffmpeg_bin: str | None
     ffprobe_bin: str | None
     timeout_seconds: int
@@ -42,6 +44,8 @@ class Settings:
             openai_api_key=os.getenv("OPENAI_API_KEY") or None,
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             openai_image_model=os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-2.5-flare"),
+            openai_tts_model=os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts"),
+            openai_tts_voice=os.getenv("OPENAI_TTS_VOICE", "alloy"),
             ffmpeg_bin=os.getenv("FFMPEG_BIN") or None,
             ffprobe_bin=os.getenv("FFPROBE_BIN") or None,
             timeout_seconds=int(os.getenv("PIPELINE_TIMEOUT_SECONDS", "180")),
