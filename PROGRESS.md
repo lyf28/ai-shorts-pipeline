@@ -10,7 +10,7 @@ Add configurable AI image generation and deterministic still-image motion while 
 2. `feat: add image provider interface` - complete.
 3. `feat: add openai image provider` - complete.
 4. `feat: add image motion composition` - complete.
-5. `test: add image provider coverage`.
+5. `test: add image provider coverage` - complete.
 6. `docs: document ai image generation`.
 
 ## Completed
@@ -26,6 +26,7 @@ Add configurable AI image generation and deterministic still-image motion while 
 - Replaced the misnamed static visual provider contract with `ImageProvider`.
 - Added an OpenAI Images API adapter and visual-prompt generation for portrait scene assets.
 - Added deterministic FFmpeg Ken Burns motion for still-image scenes.
+- Added API-free coverage for image provider selection, prompting, output handling, and failures.
 
 ## Verification
 
@@ -46,4 +47,4 @@ Add configurable AI image generation and deterministic still-image motion while 
 
 ## Next Commit
 
-- `test: add image provider coverage`.
+- `docs: document ai image generation`.
