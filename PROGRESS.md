@@ -2,36 +2,30 @@
 
 ## Goal
 
-Replace the original aggregate root commit with a small, reviewable, incremental history while preserving the local MVP behavior.
+Add a configurable OpenAI LLM provider for idea and short-script generation while preserving the offline local provider as the default development mode.
 
 ## Planned Commits
 
-1. `chore: initialize project structure` - complete.
-2. `feat: add pipeline data models` - complete.
-3. `feat: add provider interfaces` - complete.
-4. `feat: add local development providers` - complete.
-5. `feat: add storyboard generation` - complete.
-6. `feat: add sqlite run persistence` - complete.
-7. `feat: add ffmpeg video composition` - complete.
-8. `feat: add pipeline orchestration` - complete.
-9. `docs: document local pipeline setup` - complete.
+1. `chore: add openai llm configuration` - complete.
+2. `feat: add openai llm provider`.
+3. `test: add openai llm provider coverage`.
+4. `docs: document openai llm setup`.
 
 ## Completed
 
-- Protected the original aggregate commit on the pushed `backup/pre-atomic-history-rewrite` branch.
-- Reconstructed the application as eight independently reviewable engineering commits, plus this documentation commit.
-- Preserved local providers, SQLite persistence, FFmpeg composition, subtitles, validation, retry handling, logging, dry-run behavior, and automated coverage.
+- Previous goal: protected the original aggregate commit on the pushed `backup/pre-atomic-history-rewrite` branch.
+- Previous goal: reconstructed the application as eight independently reviewable engineering commits, plus documentation.
+- Previous goal: preserved local providers, SQLite persistence, FFmpeg composition, subtitles, validation, retry handling, logging, dry-run behavior, and automated coverage.
+- Added configurable `OPENAI_API_KEY` and `OPENAI_MODEL` settings while keeping `LLM_PROVIDER=local` as the default.
 
 ## Verification
 
-- Unit tests: `python -m unittest discover -s tests -v` - 6/6 passed.
-- Dry run: `python run.py --dry-run --topic "focus"` - completed and persisted the storyboard in SQLite.
-- Full run: `python run.py --topic "building better habits" --verbose` - created a valid 24-second 1080x1920 H.264/AAC MP4 with burned-in subtitles.
-- FFmpeg decoded the completed output and verified a 1080x1920 video stream.
+- Previous goal: `python -m unittest discover -s tests -v` - 6/6 passed.
+- Previous goal: local dry run and full run created and validated a 24-second 1080x1920 H.264/AAC MP4 with burned-in subtitles.
 
 ## Current Issues
 
-- None for the local MVP.
+- None.
 
 ## Blockers
 
@@ -39,4 +33,4 @@ Replace the original aggregate root commit with a small, reviewable, incremental
 
 ## Next Commit
 
-- None; perform final history and remote verification.
+- `feat: add openai llm provider`.
