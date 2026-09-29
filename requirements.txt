@@ -1,4 +1,4 @@
 # `imageio-ffmpeg` supplies FFmpeg if it is not already on PATH.
 imageio-ffmpeg>=0.5.1
-# Only used when LLM_PROVIDER=openai; local mode stays entirely offline.
+# Only used when LLM_PROVIDER=openai or IMAGE_PROVIDER=openai; local mode stays entirely offline.
 openai>=1.66.0

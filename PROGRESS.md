@@ -11,7 +11,7 @@ Add configurable AI image generation and deterministic still-image motion while 
 3. `feat: add openai image provider` - complete.
 4. `feat: add image motion composition` - complete.
 5. `test: add image provider coverage` - complete.
-6. `docs: document ai image generation`.
+6. `docs: document ai image generation` - complete.
 
 ## Completed
 
@@ -27,6 +27,7 @@ Add configurable AI image generation and deterministic still-image motion while 
 - Added an OpenAI Images API adapter and visual-prompt generation for portrait scene assets.
 - Added deterministic FFmpeg Ken Burns motion for still-image scenes.
 - Added API-free coverage for image provider selection, prompting, output handling, and failures.
+- Documented OpenAI image setup, portrait scene assets, and FFmpeg motion behavior.
 
 ## Verification
 
@@ -36,6 +37,10 @@ Add configurable AI image generation and deterministic still-image motion while 
 - Full suite: `python -m unittest discover -s tests -v` - 13/13 passed without an OpenAI API request.
 - Local regression: `python run.py --dry-run --topic "focus"` and `python run.py --topic "building better habits" --verbose` both passed; the latter created a validated 24-second 1080x1920 H.264/AAC MP4.
 - Real OpenAI dry run was not run because `OPENAI_API_KEY` is not configured in this environment.
+- OpenAI image missing-key CLI check: `IMAGE_PROVIDER=openai` without `OPENAI_API_KEY` exits with an actionable error.
+- Full suite: `python -m unittest discover -s tests -v` - 20/20 passed without an OpenAI image request.
+- Local regression: `python run.py --dry-run --topic "focus"` and `python run.py --topic "building better habits" --verbose` both passed; the latter created a validated 24-second 1080x1920 H.264/AAC MP4 with deterministic image motion.
+- Real OpenAI image smoke test was not run because `OPENAI_API_KEY` is not configured in this environment.
 
 ## Current Issues
 
@@ -47,4 +52,4 @@ Add configurable AI image generation and deterministic still-image motion while 
 
 ## Next Commit
 
-- `docs: document ai image generation`.
+- None; perform final history, working-tree, and remote verification.

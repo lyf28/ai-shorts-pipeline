@@ -12,7 +12,7 @@ Copy-Item .env.example .env
 python run.py
 ```
 
-The default `local` providers require no credentials and generate deterministic text, original abstract visual assets, and a local audio track. The completed MP4 is written to `output/`; run metadata is saved in `data/pipeline.sqlite3`.
+The default `local` providers require no credentials and generate deterministic text, original abstract image assets, and a local audio track. The completed MP4 is written to `output/`; run metadata is saved in `data/pipeline.sqlite3`.
 
 `imageio-ffmpeg` supplies FFmpeg when it is not installed on PATH. Alternatively set `FFMPEG_BIN` in `.env` to an existing executable. Set `FFPROBE_BIN` too for stream-dimension validation.
 
@@ -30,6 +30,21 @@ OPENAI_MODEL=gpt-4o-mini
 
 When `LLM_PROVIDER=openai`, a missing `OPENAI_API_KEY` stops the pipeline with an actionable error. It does not silently fall back to local mode. Keep the key only in your environment or untracked `.env` file; never commit it.
 
+## Optional OpenAI image generation
+
+`IMAGE_PROVIDER=local` is the offline default. To generate one AI image for every storyboard scene, keep the same `OPENAI_API_KEY` above and set:
+
+```text
+IMAGE_PROVIDER=openai
+OPENAI_IMAGE_MODEL=gpt-image-2.5-flare
+```
+
+`OPENAI_IMAGE_MODEL` is configurable. The OpenAI image provider calls the Images API once per scene and requests a `1024x1536` PNG at low quality; use a model available to your API account. Each output is converted by the existing FFmpeg pipeline into a 1080x1920 scene with deterministic Ken Burns-style zoom and pan, then concatenated with subtitles and audio. This stage generates still images only; it does not generate AI video.
+
+Image prompts are separate visual briefs rather than raw narration. They cover a consistent subject and style, scene action, environment, mood, camera framing, lighting, and subtitle-safe 9:16 composition. The prompt builder is intentionally small so character bibles, style bibles, and reference images can be added later.
+
+When `IMAGE_PROVIDER=openai`, a missing key stops the pipeline with an actionable error and never falls back to local images. OpenAI image generation may require organization verification; consult the official [OpenAI image generation guide](https://developers.openai.com/api/docs/guides/image-generation) for supported models and account requirements.
+
 ## Commands
 
 ```powershell
@@ -44,10 +59,10 @@ python -m unittest discover -s tests -v
 
 1. `LLMProvider` creates an idea and 20–30 second script.
 2. The script is split into six scenes and persisted as structured storyboard JSON.
-3. `VideoProvider` creates one visual asset per scene; `TTSProvider` creates audio.
-4. FFmpeg concatenates the scene visuals at 1080×1920, adds SRT subtitles, muxes audio, and creates MP4.
+3. `ImageProvider` creates one still image asset per scene; `TTSProvider` creates audio.
+4. FFmpeg applies deterministic zoom/pan motion, concatenates the scene images at 1080×1920, adds SRT subtitles, muxes audio, and creates MP4.
 5. SQLite records idea, script, storyboard, prompts, generation status, output path, and error logs.
 
-Providers are abstract base classes in `shorts_pipeline/providers/base.py`. The included local implementations make development reproducible. `OpenAILLMProvider` is available for remote idea and script generation; its key and model are read from the environment. Other remote adapters should follow the same pattern and must not put credentials in source.
+Providers are abstract base classes in `shorts_pipeline/providers/base.py`. The included local implementations make development reproducible. `OpenAILLMProvider` is available for remote idea and script generation, while `OpenAIImageProvider` creates portrait PNG scene assets; both read their key and model settings from the environment. Other remote adapters should follow the same pattern and must not put credentials in source.
 
 The pipeline logs every phase, retries provider and FFmpeg work, uses subprocess timeouts, records failures in SQLite, and validates the produced file (with `ffprobe` when available).
