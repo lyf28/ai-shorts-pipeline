@@ -10,6 +10,9 @@ class Scene:
     narration: str
     visual_prompt: str
     duration_seconds: float
+    scene_role: str = "development"
+    importance: int = 1
+    motion_required: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

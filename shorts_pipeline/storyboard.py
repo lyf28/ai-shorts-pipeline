@@ -23,7 +23,18 @@ def split_script(script: str, scene_count: int = 6) -> list[str]:
 def build_storyboard(idea: str, script: str, scene_count: int = 6, total_seconds: float = 24) -> Storyboard:
     chunks = split_script(script, scene_count)
     duration = round(total_seconds / len(chunks), 2)
-    scenes = [Scene(i + 1, chunk, f"Vertical cinematic abstract illustration for: {chunk}", duration) for i, chunk in enumerate(chunks)]
+    scenes = [
+        Scene(
+            index=i + 1,
+            narration=chunk,
+            visual_prompt=f"Vertical cinematic abstract illustration for: {chunk}",
+            duration_seconds=duration,
+            scene_role="hook" if i == 0 else "payoff" if i == len(chunks) - 1 else "development",
+            importance=3 if i in {0, len(chunks) - 1} else 2 if i == len(chunks) // 2 else 1,
+            motion_required=i in {0, len(chunks) // 2, len(chunks) - 1},
+        )
+        for i, chunk in enumerate(chunks)
+    ]
     return Storyboard(title=idea[:80], hook=chunks[0], scenes=scenes)
 
 
@@ -38,7 +49,7 @@ def retime_storyboard(storyboard: Storyboard, total_seconds: float) -> Storyboar
     if any(duration <= 0 for duration in durations):
         raise ValueError("Narration duration is too short to allocate to every scene")
     scenes = [
-        Scene(scene.index, scene.narration, scene.visual_prompt, duration)
+        Scene(scene.index, scene.narration, scene.visual_prompt, duration, scene.scene_role, scene.importance, scene.motion_required)
         for scene, duration in zip(storyboard.scenes, durations, strict=True)
     ]
     return Storyboard(title=storyboard.title, hook=storyboard.hook, scenes=scenes)
