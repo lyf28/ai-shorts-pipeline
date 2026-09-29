@@ -1,3 +1,4 @@
 # The local MVP uses only the Python standard library at runtime.
 # Install imageio-ffmpeg if you do not have an ffmpeg executable on PATH:
 imageio-ffmpeg>=0.5.1
+openai>=1.66.0

@@ -9,7 +9,7 @@ from typing import Callable, TypeVar
 from shorts_pipeline.config import Settings
 from shorts_pipeline.ffmpeg import build_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
 from shorts_pipeline.models import Storyboard
-from shorts_pipeline.providers import LocalLLMProvider, LocalTTSProvider, LocalVideoProvider
+from shorts_pipeline.providers import LocalLLMProvider, LocalTTSProvider, LocalVideoProvider, OpenAILLMProvider
 from shorts_pipeline.providers.base import LLMProvider, TTSProvider, VideoProvider
 from shorts_pipeline.storage import RunStore
 from shorts_pipeline.storyboard import build_storyboard, write_subtitles
@@ -31,10 +31,18 @@ def retry(operation: Callable[[], T], attempts: int, label: str) -> T:
 
 
 def select_providers(settings: Settings) -> tuple[LLMProvider, VideoProvider, TTSProvider]:
-    unsupported = [name for name, value in (("LLM_PROVIDER", settings.llm_provider), ("VIDEO_PROVIDER", settings.video_provider), ("TTS_PROVIDER", settings.tts_provider)) if value != "local"]
+    unsupported = [name for name, value in (("VIDEO_PROVIDER", settings.video_provider), ("TTS_PROVIDER", settings.tts_provider)) if value != "local"]
     if unsupported:
         raise ValueError(f"Unsupported provider selection: {', '.join(unsupported)}. This MVP ships local providers; add an adapter without changing the pipeline.")
-    return LocalLLMProvider(), LocalVideoProvider(), LocalTTSProvider()
+    if settings.llm_provider == "local":
+        llm: LLMProvider = LocalLLMProvider()
+    elif settings.llm_provider == "openai":
+        if not settings.openai_api_key:
+            raise ValueError("LLM_PROVIDER=openai requires OPENAI_API_KEY. Set it in your environment or .env before running the pipeline.")
+        llm = OpenAILLMProvider(settings.openai_api_key, settings.openai_model, settings.timeout_seconds)
+    else:
+        raise ValueError("Unsupported LLM_PROVIDER. Use 'local' or 'openai'.")
+    return llm, LocalVideoProvider(), LocalTTSProvider()
 
 
 class Pipeline:
