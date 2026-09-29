@@ -27,6 +27,23 @@ def build_storyboard(idea: str, script: str, scene_count: int = 6, total_seconds
     return Storyboard(title=idea[:80], hook=chunks[0], scenes=scenes)
 
 
+def retime_storyboard(storyboard: Storyboard, total_seconds: float) -> Storyboard:
+    """Allocate actual narration time proportionally to the spoken words in each scene."""
+    if total_seconds <= 0:
+        raise ValueError("Narration duration must be greater than zero")
+    weights = [max(1, len(scene.narration.split())) for scene in storyboard.scenes]
+    total_weight = sum(weights)
+    durations = [round(total_seconds * weight / total_weight, 3) for weight in weights]
+    durations[-1] = round(total_seconds - sum(durations[:-1]), 3)
+    if any(duration <= 0 for duration in durations):
+        raise ValueError("Narration duration is too short to allocate to every scene")
+    scenes = [
+        Scene(scene.index, scene.narration, scene.visual_prompt, duration)
+        for scene, duration in zip(storyboard.scenes, durations, strict=True)
+    ]
+    return Storyboard(title=storyboard.title, hook=storyboard.hook, scenes=scenes)
+
+
 def srt_timestamp(seconds: float) -> str:
     milliseconds = round(seconds * 1000)
     hours, milliseconds = divmod(milliseconds, 3_600_000)

@@ -5,6 +5,7 @@ import logging
 import re
 import shutil
 import subprocess
+import wave
 from pathlib import Path
 
 from shorts_pipeline.models import Storyboard
@@ -31,6 +32,19 @@ def resolve_ffprobe(configured: str | None = None) -> str | None:
     if configured:
         return configured
     return shutil.which("ffprobe")
+
+
+def audio_duration(path: Path) -> float:
+    """Return the duration of the pipeline's normalized WAV narration."""
+    try:
+        with wave.open(str(path), "rb") as audio:
+            frames = audio.getnframes()
+            sample_rate = audio.getframerate()
+    except (wave.Error, EOFError) as error:
+        raise FFmpegError(f"Narration audio is not a readable WAV file: {path}") from error
+    if frames <= 0 or sample_rate <= 0:
+        raise FFmpegError(f"Narration audio has no duration: {path}")
+    return frames / sample_rate
 
 
 def image_motion_filter(index: int) -> str:

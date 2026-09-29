@@ -1,7 +1,9 @@
+import tempfile
 import unittest
+import wave
 from pathlib import Path
 
-from shorts_pipeline.ffmpeg import build_video_command
+from shorts_pipeline.ffmpeg import audio_duration, build_video_command
 from shorts_pipeline.storyboard import build_storyboard
 
 
@@ -16,3 +18,13 @@ class FFmpegCommandTests(unittest.TestCase):
         self.assertIn("subtitles=subtitles.srt", joined)
         self.assertIn("libx264", command)
         self.assertEqual(command[-1], "out.mp4")
+
+    def test_reads_wav_narration_duration(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "narration.wav"
+            with wave.open(str(path), "wb") as audio:
+                audio.setnchannels(1)
+                audio.setsampwidth(2)
+                audio.setframerate(100)
+                audio.writeframes(b"\0\0" * 250)
+            self.assertEqual(audio_duration(path), 2.5)

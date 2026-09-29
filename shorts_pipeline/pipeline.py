@@ -7,13 +7,13 @@ from pathlib import Path
 from typing import Callable, TypeVar
 
 from shorts_pipeline.config import Settings
-from shorts_pipeline.ffmpeg import build_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
+from shorts_pipeline.ffmpeg import audio_duration, build_video_command, render_video, resolve_ffmpeg, resolve_ffprobe, validate_video
 from shorts_pipeline.models import Storyboard
 from shorts_pipeline.image_prompts import build_image_prompt
 from shorts_pipeline.providers import LocalImageProvider, LocalLLMProvider, LocalTTSProvider, OpenAIImageProvider, OpenAILLMProvider, OpenAITTSProvider
 from shorts_pipeline.providers.base import ImageProvider, LLMProvider, TTSProvider
 from shorts_pipeline.storage import RunStore
-from shorts_pipeline.storyboard import build_storyboard, write_subtitles
+from shorts_pipeline.storyboard import build_storyboard, retime_storyboard, write_subtitles
 
 LOG = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -84,11 +84,16 @@ class Pipeline:
             if dry_run:
                 self.store.update(run_id, generation_status="dry_run_complete")
                 return None
+            estimated_total = sum(scene.duration_seconds for scene in storyboard.scenes)
+            audio = retry(lambda: self.tts.synthesize(script, estimated_total, work_dir / "narration.wav"), self.settings.retries + 1, "audio generation")
+            actual_duration = audio_duration(audio)
+            storyboard = retime_storyboard(storyboard, actual_duration)
+            prompts = [build_image_prompt(scene) for scene in storyboard.scenes]
+            self.store.update(run_id, storyboard_json=storyboard.to_dict(), prompts_json=prompts, generation_status="narration_ready")
+            LOG.info("Run %s narration is %.2fs; scene timing was aligned to it", run_id, actual_duration)
             images = [retry(lambda scene=scene: self.image.generate_image(scene, work_dir / f"scene_{scene.index}{self.image.file_extension}"), self.settings.retries + 1, f"scene {scene.index} image") for scene in storyboard.scenes]
             subtitles = work_dir / "subtitles.srt"
             write_subtitles(storyboard, subtitles)
-            total = sum(scene.duration_seconds for scene in storyboard.scenes)
-            audio = retry(lambda: self.tts.synthesize(script, total, work_dir / "narration.wav"), self.settings.retries + 1, "audio generation")
             output_dir = self.settings.root / "output"
             output_dir.mkdir(parents=True, exist_ok=True)
             output = output_dir / f"short_{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}_{run_id}.mp4"

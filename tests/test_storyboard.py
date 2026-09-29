@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from shorts_pipeline.storyboard import build_storyboard, split_script, srt_timestamp, write_subtitles
+from shorts_pipeline.storyboard import build_storyboard, retime_storyboard, split_script, srt_timestamp, write_subtitles
 
 
 class StoryboardTests(unittest.TestCase):
@@ -25,3 +25,11 @@ class StoryboardTests(unittest.TestCase):
             subtitles = Path(directory) / "captions.srt"
             write_subtitles(board, subtitles)
             self.assertIn("00:00:00,000 --> 00:00:04,000", subtitles.read_text(encoding="utf-8"))
+
+    def test_retimes_scenes_to_actual_narration_duration(self) -> None:
+        board = build_storyboard("Idea", "One. Two words. Three words here. Four words are here. Five words are right here. Six words close this scene.")
+        retimed = retime_storyboard(board, 27.5)
+        durations = [scene.duration_seconds for scene in retimed.scenes]
+
+        self.assertEqual(round(sum(durations), 3), 27.5)
+        self.assertGreater(durations[-1], durations[0])
